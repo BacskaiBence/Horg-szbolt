@@ -124,21 +124,22 @@ app.post("/regUser", async (req, res, next) => {
       if (conn) db.releaseConnection(conn);
     }
   });
+
   app.post("/logUser", async (req, res, next) => {
     let conn = null;
     try {
       conn = await db.getConnection();
-      const { username, password } = req.body;
+      const { email, password } = req.body;
   
       // 1. Validáció
-      if (!username || !password || typeof username !== "string" || typeof password !== "string") {
+      if (!email || !password || typeof email !== "string" || typeof password !== "string") {
         return res.status(400).json({ message: "Hiányzó vagy érvénytelen adatok" });
       }
   
       // 2. Felhasználó keresése
       const [rows] = await conn.query(
-        "SELECT id, password FROM users WHERE username = ? LIMIT 1",
-        [username.trim()]
+        "SELECT id, password FROM users WHERE email = ? LIMIT 1",
+        [email.trim()]
       );
   
       if (!rows || rows.length === 0) {
