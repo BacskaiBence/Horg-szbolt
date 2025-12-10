@@ -1,4 +1,12 @@
 /* Globális beállítások */
+:root {
+  /* Színpaletta változókban (könnyebb karbantartásért) */
+  --primary-color: #0b4f17; /* Sötétzöld */
+  --secondary-color: #1b7230; /* Középzöld/kiemelés */
+  --light-green-bg: #e8ffe8; /* Nagyon világoszöld */
+  --very-light-green-bg: #f2fff2; /* Még világosabb zöld */
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -9,78 +17,108 @@ body {
   margin: 0;
   background: linear-gradient(#b8e3ff, #66a6ff);
   font-family: Arial, Helvetica, sans-serif;
+  color: black;
 }
 
-/* LOGIN oldal – saját konténer */
+/* LOGIN oldal - modern kártya stílus */
 .login-container {
-  background: rgba(255, 255, 255, 0.85);
+  /* Megtartva a modernebb, animált stílust */
+  background: linear-gradient(135deg, #ffffffdd, var(--light-green-bg) dd);
+  background-color: #ffffffdd;
+  backdrop-filter: blur(6px);
   padding: 2rem 3rem;
-  border-radius: 15px;
-  max-width: 400px;
-  margin: 3rem auto;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-  border: 2px solid #0b4f17;
+  border-radius: 16px;
+  max-width: 420px;
+  margin: 4rem auto;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
+  border: 3px solid var(--primary-color);
+  animation: fadeIn 0.6s ease-in-out;
 }
 
-/* Login címek */
+/* Belépő animáció */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Címek */
 .title {
-  color: #0b4f17;
-  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+  text-align: center;
+  margin-bottom: 0.3rem;
+  font-size: 1.8rem;
+  font-weight: bold;
 }
 
 .subtitle {
-  color: #1b7230;
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
+  color: var(--secondary-color);
+  text-align: center;
+  margin-bottom: 1.8rem;
+  font-size: 1rem;
 }
 
 /* Login form */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.2rem;
 }
 
+/* Label + input */
 .form label {
   font-weight: bold;
-  color: #0b4f17;
+  color: var(--primary-color);
   display: flex;
   flex-direction: column;
   text-align: left;
+  font-size: 1rem;
 }
 
+/* Input mezők */
 .form input {
-  padding: 0.5rem;
-  border-radius: 8px;
-  border: 2px solid #0b4f17;
-  background: #e8ffe8;
+  margin-top: 5px;
+  padding: 0.6rem;
+  border-radius: 10px;
+  border: 2px solid var(--primary-color);
+  background: var(--very-light-green-bg);
+  transition: 0.3s;
+  color: rgb(20, 20, 20);
 }
 
+.form input:focus {
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 8px #1b723060;
+  outline: none;
+}
+
+/* Gomb */
 .form button {
   margin-top: 1rem;
-  padding: 0.7rem;
-  font-size: 1.1rem;
-  background: #0b4f17;
+  padding: 0.8rem;
+  font-size: 1.2rem;
+  background: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   transition: 0.3s;
+  font-weight: bold;
 }
 
 .form button:hover {
-  background: #1b7230;
+  background: var(--secondary-color);
+  transform: scale(1.03);
 }
 
 /* NAVBAR */
 .navbar {
   border-radius: 10px;
-  background: #0b4f17;
+  background: var(--primary-color);
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 3px solid #1b7230;
+  border-bottom: 3px solid var(--secondary-color);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
 
@@ -88,31 +126,34 @@ body {
   color: white;
   font-size: 1.5rem;
   font-weight: bold;
+  margin: 0 1.5rem 0 1.5rem;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
   gap: 1.2rem;
+
 }
 
 .nav-item {
-  color: #e8ffe8;
+  color: var(--light-green-bg);
   text-decoration: none;
   font-size: 1.1rem;
   padding: 6px 10px;
   border-radius: 6px;
   transition: 0.3s;
+  margin: 0 1rem;
 }
 
 .nav-item:hover {
-  background: #1b7230;
+  background: var(--secondary-color);
   color: #bebebe;
 }
 
 /* HOME oldal */
 .page-title {
-  color: #0b4f17;
+  color: var(--primary-color);
   text-align: center;
   margin-bottom: 1.5rem;
 }
@@ -124,12 +165,11 @@ body {
 
 /* Kártyák */
 .custom-card {
-  border: 2px solid #0b4f17;
-  border-radius: 12px;
+  border: 2px solid var(--primary-color);
+  border-radius: 15px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
   transition: 0.3s;
   overflow: hidden;
-  border-radius: 15px;
   margin-top: 15px;
   width: 400px;
   text-align: center;
@@ -141,22 +181,22 @@ body {
 }
 
 .custom-card .card-title {
-  color: #0b4f17;
+  color: var(--primary-color);
   font-weight: bold;
 }
 
 .custom-card .card-text {
-  color: #1b7230;
+  color: var(--secondary-color);
 }
 
 .custom-card .btn-success {
-  background: #0b4f17;
+  background: var(--primary-color);
   border: none;
   margin-bottom: 10px;
 }
 
 .custom-card .btn-success:hover {
-  background: #1b7230;
+  background: var(--secondary-color);
 }
 
 /* Mobilbarát */
@@ -173,92 +213,4 @@ body {
   .nav-logo {
     font-size: 1.2rem;
   }
-}
-
-/* LOGIN oldal – modern kártya stílus */
-.login-container {
-  background: linear-gradient(135deg, #ffffffdd, #e8ffe8dd);
-  backdrop-filter: blur(6px);
-  padding: 2rem 3rem;
-  border-radius: 16px;
-  max-width: 420px;
-  margin: 4rem auto;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
-  border: 3px solid #0b4f17;
-  animation: fadeIn 0.6s ease-in-out;
-}
-
-/* Belépő animáció */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Login cím */
-.title {
-  color: #0b4f17;
-  text-align: center;
-  margin-bottom: 0.3rem;
-  font-size: 1.8rem;
-  font-weight: bold;
-}
-
-/* Alcím */
-.subtitle {
-  color: #1b7230;
-  text-align: center;
-  margin-bottom: 1.8rem;
-  font-size: 1rem;
-}
-
-/* Form */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-}
-
-/* Label + input */
-.form label {
-  font-weight: bold;
-  color: #0b4f17;
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-  font-size: 1rem;
-}
-
-/* Input mezők */
-.form input {
-  margin-top: 5px;
-  padding: 0.6rem;
-  border-radius: 10px;
-  border: 2px solid #0b4f17;
-  background: #f2fff2;
-  transition: 0.3s;
-}
-
-.form input:focus {
-  border-color: #1b7230;
-  box-shadow: 0 0 8px #1b723060;
-  outline: none;
-}
-
-/* Gomb */
-.form button {
-  margin-top: 1rem;
-  padding: 0.8rem;
-  font-size: 1.2rem;
-  background: #0b4f17;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: 0.3s;
-  font-weight: bold;
-}
-
-.form button:hover {
-  background: #1b7230;
-  transform: scale(1.03);
 }
