@@ -124,39 +124,62 @@ app.post("/regUser", async (req, res, next) => {
       if (conn) db.releaseConnection(conn);
     }
   });
-app.post("/logUser", async (req,res)=>{
-    const conn= await db.getConnection();
-    const body=req.body;
-
-    if (Object.keys(body)!=2) {
-        throw new Error("Invalid body");
-    }
-    if (!body.username||typeof(body.username)!="string") {
-        throw new Error("Invalid username");
-    }
-    if (!body.password||typeof(body.password)!="string") {
-        throw new Error("Invalid password");
-    }
-
-    const [user] = await conn.query("SELECT * FROM users WHERE username = ?;",[body.username])
-
-    if (!user || user.length<1) {
-        throw new Error("Invalid username or password");
-    }
-
-    const valid= await argon.verify(user[0].hash,body.password)
-    if (!valid) {
-        throw new Error("Invalid username or password");
-    }
-
-    const token = jwt.sign({id: user[0].id},SECRET);
-    res.cookie('token', token, {
+  app.post("/logUser", async (req, res, next) => {
+    let conn = null;
+    try {
+      conn = await db.getConnection();
+      const { username, password } = req.body;
+  
+      // 1. Validáció
+      if (!username || !password || typeof username !== "string" || typeof password !== "string") {
+        return res.status(400).json({ message: "Hiányzó vagy érvénytelen adatok" });
+      }
+  
+      // 2. Felhasználó keresése
+      const [rows] = await conn.query(
+        "SELECT id, password FROM users WHERE username = ? LIMIT 1",
+        [username.trim()]
+      );
+  
+      if (!rows || rows.length === 0) {
+        return res.status(401).json({ message: "Hibás felhasználónév vagy jelszó" });
+      }
+  
+      const user = rows[0];
+  
+      // 3. Jelszó ellenőrzése
+      // FONTOS: az oszlop neve nálad password (nem hash!)
+      const valid = await argon.verify(user.password, password);
+      if (!valid) {
+        return res.status(401).json({ message: "Hibás felhasználónév vagy jelszó" });
+      }
+  
+      // 4. JWT token generálása
+      const token = jwt.sign({ id: user.id }, SECRET, { expiresIn: "7d" });
+  
+      // 5. Cookie beállítása
+      res.cookie("token", token, {
         httpOnly: true,
-        maxAge : 7*24*60*60*1000
-    });
-    db.releaseConnection(conn)
-    res.json({message: "Succesfully logged in"})
-})
+        secure: process.env.NODE_ENV === "production", // HTTPS-en csak secure
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 nap
+      });
+  
+      // 6. Sikeres válasz
+      return res.json({ message: "Sikeres bejelentkezés" });
+  
+    } catch (err) {
+      console.error("Bejelentkezési hiba:", err);
+      // Ha már elküldtük a választ, ne próbáljunk még egyszer
+      if (!res.headersSent) {
+        return res.status(500).json({ message: "Szerveroldali hiba történt" });
+      }
+      next(err); // átadjuk a globális error handlernek
+  
+    } finally {
+      if (conn) db.releaseConnection(conn);
+    }
+  });
 
 app.delete("/users/:id", auth, async (req,res)=>{
     const conn= await db.getConnection();
@@ -164,7 +187,6 @@ app.delete("/users/:id", auth, async (req,res)=>{
     if (isNaN(userId)) {
         throw new Error("Invalid user id");
     }
-
     const [values]=await conn.query(`DELETE FROM users WHERE users.id=?;`,[userId]);
     if (values.affectedRows!=1) {
         throw new Error("Failed to delete");
