@@ -55,48 +55,75 @@ app.get("/clear-cookies", (req,res)=>{
     res.send('A sütik törölve. ')
 })
 
-app.post("/regUser", async (req,res)=>{
-    const conn= await db.getConnection();
-    const body=req.body;
-
-    if (Object.keys(body)!=5) {
-        throw new Error("Invalid body");
+app.post("/regUser", async (req, res, next) => {
+    let conn;
+    try {
+      conn = await db.getConnection();
+      const body = req.body;
+  
+      // 1. Validáció
+      if (!body || typeof body !== "object" || Object.keys(body).length !== 5) {
+        return res.status(400).json({ message: "Hibás kérés, pontosan 5 mező szükséges" });
+      }
+  
+      const { username, password, email, phone_number, address } = body;
+  
+      if (typeof username !== "string" || !username.trim()) 
+        return res.status(400).json({ message: "Érvénytelen felhasználónév" });
+  
+      if (typeof password !== "string" || password.length < 8)
+        return res.status(400).json({ message: "A jelszónak legalább 8 karakternek kell lennie" });
+  
+      if (typeof email !== "string" || !/^\S+@\S+\.\S+$/.test(email))
+        return res.status(400).json({ message: "Érvénytelen email cím" });
+  
+      if (typeof phone_number !== "string" || !phone_number.trim())
+        return res.status(400).json({ message: "Érvénytelen telefonszám" });
+  
+      if (typeof address !== "string" || !address.trim())
+        return res.status(400).json({ message: "Érvénytelen cím" });
+  
+      // 2. Jelszó hash
+      const hash = await argon.hash(password);
+  
+      // 3. Létezik-e már az email?
+      const [exists] = await conn.query(
+        `SELECT id FROM users WHERE email = ? LIMIT 1`,
+        [email]
+      );
+  
+      if (exists.length > 0) {
+        return res.status(409).json({ message: "Ezzel az email címmel már létezik fiók" });
+      }
+  
+      // 4. Felhasználó beszúrása
+      const [result] = await conn.query(
+        `INSERT INTO users (username, pasword, email, phone_number, address, entitlement) 
+         VALUES (?, ?, ?, ?, ?, 0)`,
+        [username.trim(), hash, email.toLowerCase().trim(), phone_number.trim(), address.trim()]
+      );
+  
+      if (result.affectedRows !== 1) {
+        return res.status(500).json({ message: "Sikertelen regisztráció, próbáld újra később" });
+      }
+  
+      // 5. Sikeres válasz
+      return res.status(201).json({ message: "Sikeres regisztráció!" });
+  
+    } catch (err) {
+      // Bármilyen váratlan hiba ide kerül
+      console.error("Regisztrációs hiba:", err);
+      // Ha még nem küldtünk választ, akkor most küldünk egy általánosat
+      if (!res.headersSent) {
+        return res.status(500).json({ message: "Szerveroldali hiba történt" });
+      }
+      // Ha már küldtünk, akkor csak átadjuk tovább (pl. egy globális error handlernek)
+      next(err);
+  
+    } finally {
+      if (conn) db.releaseConnection(conn);
     }
-    if (!body.username||typeof(body.username)!="string") {
-        throw new Error("Invalid username");
-    }
-    if (!body.password||typeof(body.password)!="string") {
-        throw new Error("Invalid password");
-    }
-    if (!body.email||typeof(body.email)!="string"||!body.email.includes("@")) {
-        throw new Error("Invalid email");
-    }
-    if (!body.phone_number||typeof(body.phone_number)!="string") {
-        throw new Error("Invalid phone number");
-    }
-    if (!body.address||typeof(body.address)!="string") {
-        throw new Error("Invalid address");
-    }
-    if (body.password.length<8) {
-        throw new Error("Invalid password length");
-    }
-
-    const hash= await argon.hash(body.password);
-
-    const [exists]=await conn.query(`SELECT * FROM users WHERE users.email=?;`,[body.email])
-    if (exists) {
-        throw new Error("An account already exists in this email address");
-    }
-
-    const [upload]= await conn.query(`INSERT INTO users(username,password,email,phone_number,address,entitlement) VALUES (?,?,?,?,?,?)`,[body.username,hash,body.email,body.phone_number,body.address,0]);
-    if (upload.affectedRows!=1) {
-        throw new Error("Failed to insert");
-    }
-    db.releaseConnection(conn);
-    res.status(201).json({ message: "Sikeres regisztáció!"});
-
-})
-
+  });
 app.post("/logUser", async (req,res)=>{
     const conn= await db.getConnection();
     const body=req.body;
