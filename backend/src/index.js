@@ -1,7 +1,7 @@
 import express from "express";
 import sql from "mysql2/promise";
 import cors from "cors";
-import jwt, { sign } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import argon from "argon2";
 import cp from "cookie-parser"
 import { logger } from "./middlewares/logger.js";
@@ -22,7 +22,7 @@ const db=sql.createPool({
 
 app.use(logger);
 
-const SECRET="asd";
+export const SECRET="asd";
 
 app.get("/set-cookies", (req,res)=>{
     res.cookie('theme', 'dark',{
@@ -302,13 +302,5 @@ app.delete("/order/:id", auth, async (req,res)=>{
 app.use(error)
 
 app.listen(3000, async ()=>{
-    const conn= await db.getConnection();
-    const [users]= await   conn.query(`SELECT * FROM users`);
-    if (users.usename.includes("admin")) {
-
-    }else{
-        const [admin]= await conn.query(`INSERT INTO usersINSERT INTO users(username,password,email,phone_number,address,entitlement) VALUES ("admin","$2a$12$EeTK/OuWR7yD2NeuOQa.bO9r8E2rqz6NJZ46Wz0/TgmxoeCglmIlq",admin@gmail.com,null,null,1)`);
-    }
-    db.releaseConnection(conn)
     console.log("A szerver elindult!")
 })
