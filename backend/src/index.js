@@ -138,7 +138,7 @@ app.post("/regUser", async (req, res, next) => {
   
       // 2. Felhasználó keresése
       const [rows] = await conn.query(
-        "SELECT id, password FROM users WHERE email = ? LIMIT 1",
+        "SELECT id, pasword FROM users WHERE email = ? LIMIT 1",
         [email.trim()]
       );
   
@@ -147,10 +147,10 @@ app.post("/regUser", async (req, res, next) => {
       }
   
       const user = rows[0];
-  
+
       // 3. Jelszó ellenőrzése
       // FONTOS: az oszlop neve nálad password (nem hash!)
-      const valid = await argon.verify(user.password, password);
+      const valid = await argon.verify(user.pasword, password);
       if (!valid) {
         return res.status(401).json({ message: "Hibás felhasználónév vagy jelszó" });
       }

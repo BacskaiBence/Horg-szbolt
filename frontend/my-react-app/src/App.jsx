@@ -31,7 +31,6 @@ function App() {
               // Bejelentkezett
               <>
                 <NavLink to="/" className="nav-item">Kezdőlap</NavLink>
-                <NavLink to="/login" className="nav-item">Shop</NavLink>
                 <NavLink to="/kosar" className="nav-item">Kosár</NavLink>
                 <NavLink to="/profil" className="nav-item">Profil</NavLink>
                 <NavLink to="/upload" className="nav-item">Upload</NavLink>
