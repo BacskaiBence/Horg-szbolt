@@ -237,7 +237,7 @@ app.get("/products/get", async (req,res)=>{
         throw new Error("Failed to get products");
     }
     db.releaseConnection(conn)
-    res.json({values})
+    res.json(values)
 })
 
 app.post("/products/add", auth, async (req,res)=>{
@@ -267,7 +267,7 @@ app.post("/products/add", auth, async (req,res)=>{
         throw new Error("Product already exists");
     }
 
-    const [insertProduct]=await conn.query(`INSERT INTO products(name,description,price,quantity,image) VALUES (?,?,?,?,?)`,[body.name,body.description,body.price,body.quantity,body.image])
+    const [insertProduct]=await conn.query(`INSERT INTO products(name,description,price,quantity) VALUES (?,?,?,?)`,[body.name,body.description,body.price,body.quantity])
     if (insertProduct.affectedRows!=1) {
         throw new Error("Failed to insert product");
     }
@@ -316,7 +316,7 @@ app.put("/products/:id", auth,  async (req,res)=>{
         throw new Error("Invalid image");
     }
 
-    const [values]=await conn.query(`UPDATE products SET name=?, description=?, price=?, quantity=?, image=? WHERE products.id=?;`,[body.name || null,body.description || null,body.price || null,body.quantity || null,body.image || null,productId]);
+    const [values]=await conn.query(`UPDATE products SET name=?, description=?, price=?, quantity=? WHERE products.id=?;`,[body.name || null,body.description || null,body.price || null,body.quantity || null,productId]);
     if (values.affectedRows!=1) {
         throw new Error("Failed to update");
     }

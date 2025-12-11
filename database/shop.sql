@@ -20,7 +20,6 @@ CREATE TABLE products(
     description varchar(255),
     price int,
     quantity int,
-    image varchar(255)
 
 );
 

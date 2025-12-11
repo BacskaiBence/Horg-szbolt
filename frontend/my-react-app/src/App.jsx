@@ -48,7 +48,7 @@ function App() {
         </nav>
 
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home isLoggedIn={isLoggedIn}/>} />
           <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn} setUser={setUser}/>} />
           <Route path="/regist" element={<Regist />} />
           <Route path="/upload" element={<Upload />} />
