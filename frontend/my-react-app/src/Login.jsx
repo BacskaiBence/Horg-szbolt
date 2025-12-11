@@ -26,7 +26,7 @@ function Login({ isLoggedIn, setIsLoggedIn, setUser }) {
         setMessage(null); // Törli az előző üzenetet
 
         try {
-            const res = await fetch('http://localhost:3000/loguser', {
+            const res = await fetch('http://localhost:3000/logUser', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 // JSON.stringify-jal küldi el a state-ben lévő adatokat
@@ -53,7 +53,7 @@ function Login({ isLoggedIn, setIsLoggedIn, setUser }) {
             }
         } catch (err) {
             // HÁLÓZATI/SZERVER HIBA
-            setMessage({ type: 'danger', text: 'Nem érhető el a szerver. Ellenőrizd a backend kapcsolatot!' });
+            setMessage({ type: 'danger', text: err.message });
         }
     };
 

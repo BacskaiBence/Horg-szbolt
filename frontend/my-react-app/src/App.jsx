@@ -49,7 +49,7 @@ function App() {
 
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn} setUser={setUser}/>} />
           <Route path="/regist" element={<Regist />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/profil" element={<Profil />} />
