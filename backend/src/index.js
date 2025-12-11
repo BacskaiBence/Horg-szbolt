@@ -147,7 +147,7 @@ app.post("/regUser", async (req, res, next) => {
       }
   
       const user = rows[0];
-  
+
       // 3. Jelszó ellenőrzése
       // FONTOS: az oszlop neve nálad password (nem hash!)
       const valid = await argon.verify(user.pasword, password);
