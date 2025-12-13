@@ -30,7 +30,6 @@ function Regist() {
                 setMessage({ type: 'success', text: 'Sikeres regisztráció! Átirányítás a bejelentkezéshez...' });
                 setFormData({ username: '', password: '', email: '',phone_number: '', address: ''  });
                 
-                // Auto-redirect to login after 2 seconds
                 setTimeout(() => {
                     navigate('/login');
                 }, 2000);

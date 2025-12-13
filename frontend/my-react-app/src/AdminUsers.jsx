@@ -26,7 +26,6 @@ const AdminUsers = () => {
         }
         setIsAdmin(true);
 
-        // Feltételezett endpoint: GET /users (admin csak)
         const usersRes = await fetch('http://localhost:5000/users', {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -44,7 +43,7 @@ const AdminUsers = () => {
 
   const updateUser = async (userId, updatedData) => {
     try {
-      await fetch(`http://localhost:5000/users/${userId}`, {  // PUT szerkesztés
+      await fetch(`http://localhost:5000/users/${userId}`, { 
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -67,7 +66,7 @@ const AdminUsers = () => {
     <div>
       <h2 style={{ textAlign: 'center' }}>Felhasználók kezelése (Admin)</h2>
       {users.map((user) => (
-        <div className="cart-item" key={user._id}>  {/* Újrahasznosítjuk a cart stílust */}
+        <div className="cart-item" key={user._id}>
           <div>
             <strong>{user.name}</strong> ({user.email})
           </div>
