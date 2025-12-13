@@ -1,110 +1,113 @@
 import { useState } from 'react';
-import './App.css';
 import { useNavigate } from 'react-router-dom';
+import './App.css';
 
-function Login({ isLoggedIn, setIsLoggedIn, setUser }) {
-    // 1. STATE a bejelentkezési adatokhoz
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-    });
-    // 2. STATE a visszajelző üzenetekhez
-    const [message, setMessage] = useState(null);
-    
-    // 3. HOOK a navigációhoz (megfelelő helyen!)
-    const navigate = useNavigate();
+function Login({ setIsLoggedIn, setIsAdmin }) {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
 
-    // 4. Általános adatkezelő függvény
-    const handleChange = (e) => {
-        // Frissíti a megfelelő mezőt a formData state-ben
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+  const [message, setMessage] = useState(null);
 
-    // 5. Bejelentkezési logika
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        setMessage(null); // Törli az előző üzenetet
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setMessage(null);
+
+    try {
+      const res = await fetch('http://localhost:5000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.token) {
+        localStorage.setItem('token', data.token);
+
+        setIsLoggedIn(true);
 
         try {
-            const res = await fetch('http://localhost:3000/logUser', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                // JSON.stringify-jal küldi el a state-ben lévő adatokat
-                body: JSON.stringify(formData)
-            });
-            
-            const data = await res.json();
-            
-            if (res.ok) {
-                // SIKERES BEJELENTKEZÉS
-                setMessage({ type: 'success', text: 'Sikeres bejelentkezés! Átirányítás a főoldalra...' });
-                
-                setIsLoggedIn(true);
-                setUser(data.username); // Feltételezve, hogy a szerver adja vissza a felhasználónevet
-                
-                // Automatikus átirányítás 2 másodperc után
-                setTimeout(() => {
-                    navigate('/');
-                }, 2000);
-                
-            } else {
-                // SIKERTELEN BEJELENTKEZÉS (pl. rossz jelszó)
-                setMessage({ type: 'danger', text: data.message || 'Hibás email vagy jelszó.' });
-            }
+          const profileRes = await fetch('http://localhost:5000/profile', {
+            headers: { Authorization: `Bearer ${data.token}` },
+          });
+          const profileData = await profileRes.json();
+          setIsAdmin(profileData.isAdmin || false);
         } catch (err) {
-            // HÁLÓZATI/SZERVER HIBA
-            setMessage({ type: 'danger', text: err.message });
+          setIsAdmin(false);
         }
-    };
 
-    return (
-        <>
-            <div className="login-container">
-                <h1 className="title">🐟 Bejelentkezés 🐟</h1>
-                <p className="subtitle">Lépj be, és dobd be a horgot a legjobb ajánlatokra!</p>
+        setMessage({ type: 'success', text: 'Sikeres bejelentkezés! Átirányítás...' });
 
-                {/* Visszajelző üzenet megjelenítése (success/danger) */}
-                {message && (
-                    <div className={`alert alert-${message.type}`} style={{ 
-                        padding: '10px', 
-                        borderRadius: '5px', 
-                        marginBottom: '1rem',
-                        backgroundColor: message.type === 'success' ? '#d4edda' : '#f8d7da',
-                        color: message.type === 'success' ? '#155724' : '#721c24',
-                        border: `1px solid ${message.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`
-                    }}>
-                        {message.text}
-                    </div>
-                )}
+        setTimeout(() => {
+          navigate('/');
+        }, 1500);
+      } else {
+        setMessage({ type: 'danger', text: data.message || 'Hibás email vagy jelszó' });
+      }
+    } catch (err) {
+      setMessage({ type: 'danger', text: 'Nem érhető el a szerver.' });
+    }
+  };
 
-                <form className="form" onSubmit={handleLogin}>
-                    <label>Email:
-                        <input 
-                            type="email" 
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                            placeholder="Email címed..." 
-                        />
-                    </label>
+  return (
+    <div className="login-container">
+      <h1 className="title">🐟 Bejelentkezés 🐟</h1>
 
-                    <label>Jelszó:
-                        <input 
-                            type="password" 
-                            name="password" 
-                            value={formData.password}
-                            onChange={handleChange}
-                            required
-                            placeholder="Jelszavad..." 
-                        />
-                    </label>
+      {message && (
+        <div
+          className={`alert alert-${message.type}`}
+          style={{
+            padding: '12px',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            backgroundColor: message.type === 'success' ? '#d4edda' : '#f8d7da',
+            color: message.type === 'success' ? '#155724' : '#721c24',
+            border: `1px solid ${message.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
+            textAlign: 'center',
+            fontWeight: '500',
+          }}
+        >
+          {message.text}
+        </div>
+      )}
 
-                    <button type="submit">Bejelentkezés</button>
-                </form>
-            </div>
-        </>
-    );
+      <form className="form" onSubmit={handleLogin}>
+        <label>
+          Email:
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            placeholder="Email címed..."
+          />
+        </label>
+
+        <label>
+          Jelszó:
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            placeholder="Jelszavad..."
+          />
+        </label>
+
+        <button type="submit">Bejelentkezés</button>
+      </form>
+    </div>
+  );
 }
 
 export default Login;

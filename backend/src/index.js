@@ -3,354 +3,309 @@ import sql from "mysql2/promise";
 import cors from "cors";
 import jwt from "jsonwebtoken";
 import argon from "argon2";
-import cp from "cookie-parser"
-import { logger } from "./middlewares/logger.js";
-import { error } from "./middlewares/error.js";
-import { auth } from "./middlewares/auth.js";
 
-const app=express();
+const app = express();
 app.use(express.json());
 app.use(cors());
-app.use(cp());
 
-const db=sql.createPool({
-    host : "localhost",
-    password : "",
-    user : "root",
-    database : "fishing_shop"
-})
+const db = sql.createPool({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "fishing_shop"
+});
+
+const SECRET = "nagyon_titkos_kulcs_2025_horgaszbolt";
+
+const logger = (req, res, next) => {
+  console.log(`${req.method} - ${req.url}`);
+  next();
+};
+
+const errorHandler = (err, req, res, next) => {
+  if (err.message.includes("Invalid")) {
+    return res.status(400).json({ message: err.message });
+  }
+  if (err.message.includes("Failed")) {
+    return res.status(404).json({ message: err.message });
+  }
+  if (err.message.includes("exists")) {
+    return res.status(409).json({ message: err.message });
+  }
+  res.status(500).json({ message: "Belső szerverhiba", details: err.message });
+};
+
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Nincs token" });
+  }
+  const token = authHeader.split(" ")[1];
+  try {
+    const payload = jwt.verify(token, SECRET);
+    req.userId = payload.id;
+    req.isAdmin = payload.isAdmin;
+    next();
+  } catch (err) {
+    res.status(401).json({ message: "Érvénytelen token" });
+  }
+};
+
+const verifyAdmin = (req, res, next) => {
+  verifyToken(req, res, () => {
+    if (!req.isAdmin) {
+      return res.status(403).json({ message: "Csak admin férhet hozzá" });
+    }
+    next();
+  });
+};
 
 app.use(logger);
 
-export const SECRET="asd";
+app.post("/register", async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    const { username, password, email, phone_number, address } = req.body;
 
-app.get("/set-cookies", (req,res)=>{
-    res.cookie('theme', 'dark',{
-        maxAge: 900000,
-        httpOnly: false
-    });
-    
-    res.cookie('auth_token','$2a$12$524A4405b5Zz6RT4SVH6KOg60GDcenrNxwZNcUa3r75onuIB.8E1W',{
-        maxAge: 60*60*100,
-        httpOnly: true,
-        secure: false,
-        sameSite: 'strict'
-    })
+    if (!username || !password || !email || !phone_number || !address) {
+      return res.status(400).json({ message: "Minden mező kötelező" });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ message: "A jelszónak legalább 8 karakternek kell lennie" });
+    }
 
-    res.send('Sütik beállítva. LEkérhető /read-cookies al')
+    const hash = await argon.hash(password);
+
+    const [exists] = await conn.query("SELECT id FROM users WHERE email = ?", [email]);
+    if (exists.length > 0) {
+      return res.status(409).json({ message: "Ezzel az emaillel már létezik fiók" });
+    }
+
+    await conn.query(
+      `INSERT INTO users (username, pasword, email, phone_number, address, entitlement) 
+       VALUES (?, ?, ?, ?, ?, 0)`,
+      [username.trim(), hash, email.toLowerCase().trim(), phone_number.trim(), address.trim()]
+    );
+
+    res.status(201).json({ message: "Sikeres regisztráció!" });
+  } catch (err) {
+    errorHandler(err, req, res);
+  } finally {
+    if (conn) conn.release();
+  }
 });
 
-app.get("/read-cookies", (req,res)=>{
-    const allCookies = req.cookies;
-    const theme =req.cookies.theme;
-    const authToken= req.cookies.auth_token;
+app.post("/login", async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    const { email, password } = req.body;
 
-    res.json({allCookies,theme,authToken})
-})
+    const [rows] = await conn.query(
+      "SELECT id, pasword, entitlement FROM users WHERE email = ?",
+      [email.trim()]
+    );
+    if (rows.length === 0) {
+      return res.status(401).json({ message: "Hibás email vagy jelszó" });
+    }
 
-app.get("/clear-cookies", (req,res)=>{
-    res.clearCookie('theme');
-    res.clearCookie('auth_token');
+    const user = rows[0];
+    const valid = await argon.verify(user.pasword, password);
+    if (!valid) {
+      return res.status(401).json({ message: "Hibás email vagy jelszó" });
+    }
 
-    res.send('A sütik törölve. ')
-})
+    const token = jwt.sign(
+      { id: user.id, isAdmin: user.entitlement === 1 },
+      SECRET,
+      { expiresIn: "7d" }
+    );
 
-app.post("/regUser", async (req, res, next) => {
-    let conn;
-    try {
-      conn = await db.getConnection();
-      const body = req.body;
-  
-      // 1. Validáció
-      if (!body || typeof body !== "object" || Object.keys(body).length !== 5) {
-        return res.status(400).json({ message: "Hibás kérés, pontosan 5 mező szükséges" });
-      }
-  
-      const { username, password, email, phone_number, address } = body;
-  
-      if (typeof username !== "string" || !username.trim()) 
-        return res.status(400).json({ message: "Érvénytelen felhasználónév" });
-  
-      if (typeof password !== "string" || password.length < 8)
-        return res.status(400).json({ message: "A jelszónak legalább 8 karakternek kell lennie" });
-  
-      if (typeof email !== "string" || !/^\S+@\S+\.\S+$/.test(email))
-        return res.status(400).json({ message: "Érvénytelen email cím" });
-  
-      if (typeof phone_number !== "string" || !phone_number.trim())
-        return res.status(400).json({ message: "Érvénytelen telefonszám" });
-  
-      if (typeof address !== "string" || !address.trim())
-        return res.status(400).json({ message: "Érvénytelen cím" });
-  
-      // 2. Jelszó hash
-      const hash = await argon.hash(password);
-  
-      // 3. Létezik-e már az email?
-      const [exists] = await conn.query(
-        `SELECT id FROM users WHERE email = ? LIMIT 1`,
-        [email]
+    res.json({ token });
+  } catch (err) {
+    errorHandler(err, req, res);
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+app.get("/profile", verifyToken, async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    const [rows] = await conn.query(
+      "SELECT username AS name, email FROM users WHERE id = ?",
+      [req.userId]
+    );
+    conn.release();
+    if (rows.length === 0) return res.status(404).json({ message: "Felhasználó nem található" });
+
+    res.json({
+      name: rows[0].name,
+      email: rows[0].email,
+      isAdmin: req.isAdmin
+    });
+  } catch (err) {
+    errorHandler(err, req, res);
+  }
+});
+
+
+app.get("/products", async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    const [rows] = await conn.query(
+      "SELECT id AS _id, name, description, price, quantity, image FROM products"
+    );
+    conn.release();
+    res.json(rows);
+  } catch (err) {
+    errorHandler(err, req, res);
+  }
+});
+
+app.get("/products/:id", async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    const [rows] = await conn.query(
+      "SELECT id AS _id, name, description, price, quantity, image FROM products WHERE id = ?",
+      [req.params.id]
+    );
+    conn.release();
+    if (rows.length === 0) return res.status(404).json({ message: "Termék nem található" });
+    res.json(rows[0]);
+  } catch (err) {
+    errorHandler(err, req, res);
+  }
+});
+
+app.post("/products", verifyAdmin, async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    const { name, description, price, quantity, image } = req.body;
+
+    await conn.query(
+      "INSERT INTO products (name, description, price, quantity, image) VALUES (?, ?, ?, ?, ?)",
+      [name, description, price, quantity, image || ""]
+    );
+    conn.release();
+    res.json({ message: "Termék sikeresen feltöltve" });
+  } catch (err) {
+    errorHandler(err, req, res);
+  }
+});
+
+app.get("/cart", verifyToken, async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    const [rows] = await conn.query(`
+      SELECT c.id AS cartItemId, p.id AS _id, p.name, p.price, c.quantity
+      FROM cart c
+      JOIN products p ON c.product_id = p.id
+      WHERE c.user_id = ?
+    `, [req.userId]);
+    conn.release();
+    res.json({ items: rows });
+  } catch (err) {
+    errorHandler(err, req, res);
+  }
+});
+
+app.post("/cart/add", verifyToken, async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    const { productId } = req.body;
+
+    const [existing] = await conn.query(
+      "SELECT id FROM cart WHERE user_id = ? AND product_id = ?",
+      [req.userId, productId]
+    );
+
+    if (existing.length > 0) {
+      await conn.query(
+        "UPDATE cart SET quantity = quantity + 1 WHERE id = ?",
+        [existing[0].id]
       );
-  
-      if (exists.length > 0) {
-        return res.status(409).json({ message: "Ezzel az email címmel már létezik fiók" });
-      }
-  
-      // 4. Felhasználó beszúrása
-      const [result] = await conn.query(
-        `INSERT INTO users (username, pasword, email, phone_number, address, entitlement) 
-         VALUES (?, ?, ?, ?, ?, 0)`,
-        [username.trim(), hash, email.toLowerCase().trim(), phone_number.trim(), address.trim()]
+    } else {
+      await conn.query(
+        "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, 1)",
+        [req.userId, productId]
       );
-  
-      if (result.affectedRows !== 1) {
-        return res.status(500).json({ message: "Sikertelen regisztráció, próbáld újra később" });
-      }
-  
-      // 5. Sikeres válasz
-      return res.status(201).json({ message: "Sikeres regisztráció!" });
-  
-    } catch (err) {
-      // Bármilyen váratlan hiba ide kerül
-      console.error("Regisztrációs hiba:", err);
-      // Ha még nem küldtünk választ, akkor most küldünk egy általánosat
-      if (!res.headersSent) {
-        return res.status(500).json({ message: "Szerveroldali hiba történt" });
-      }
-      // Ha már küldtünk, akkor csak átadjuk tovább (pl. egy globális error handlernek)
-      next(err);
-  
-    } finally {
-      if (conn) db.releaseConnection(conn);
     }
-  });
+    conn.release();
+    res.json({ message: "Termék hozzáadva a kosárhoz" });
+  } catch (err) {
+    errorHandler(err, req, res);
+  }
+});
 
-  app.post("/logUser", async (req, res, next) => {
-    let conn = null;
-    try {
-      conn = await db.getConnection();
-      const { email, password } = req.body;
-  
-      // 1. Validáció
-      if (!email || !password || typeof email !== "string" || typeof password !== "string") {
-        return res.status(400).json({ message: "Hiányzó vagy érvénytelen adatok" });
-      }
-  
-      // 2. Felhasználó keresése
-      const [rows] = await conn.query(
-        "SELECT id, pasword FROM users WHERE email = ? LIMIT 1",
-        [email.trim()]
+app.delete("/cart/remove/:itemId", verifyToken, async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    await conn.query(
+      "DELETE FROM cart WHERE id = ? AND user_id = ?",
+      [req.params.itemId, req.userId]
+    );
+    conn.release();
+    res.json({ message: "Termék eltávolítva a kosárból" });
+  } catch (err) {
+    errorHandler(err, req, res);
+  }
+});
+
+app.post("/orders", verifyToken, async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    const { address } = req.body;
+
+    const [cartItems] = await conn.query(
+      "SELECT product_id, quantity FROM cart WHERE user_id = ?",
+      [req.userId]
+    );
+
+    if (cartItems.length === 0) {
+      return res.status(400).json({ message: "A kosár üres" });
+    }
+
+    for (let item of cartItems) {
+      await conn.query(
+        "INSERT INTO orders (user_id, product_id, quantity, address) VALUES (?, ?, ?, ?)",
+        [req.userId, item.product_id, item.quantity, address]
       );
-  
-      if (!rows || rows.length === 0) {
-        return res.status(401).json({ message: "Hibás felhasználónév vagy jelszó" });
-      }
-  
-      const user = rows[0];
-
-      // 3. Jelszó ellenőrzése
-      // FONTOS: az oszlop neve nálad password (nem hash!)
-      const valid = await argon.verify(user.pasword, password);
-      if (!valid) {
-        return res.status(401).json({ message: "Hibás felhasználónév vagy jelszó" });
-      }
-  
-      // 4. JWT token generálása
-      const token = jwt.sign({ id: user.id }, SECRET, { expiresIn: "7d" });
-  
-      // 5. Cookie beállítása
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // HTTPS-en csak secure
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 nap
-      });
-  
-      // 6. Sikeres válasz
-      return res.json({ message: "Sikeres bejelentkezés" });
-  
-    } catch (err) {
-      console.error("Bejelentkezési hiba:", err);
-      // Ha már elküldtük a választ, ne próbáljunk még egyszer
-      if (!res.headersSent) {
-        return res.status(500).json({ message: "Szerveroldali hiba történt" });
-      }
-      next(err); // átadjuk a globális error handlernek
-  
-    } finally {
-      if (conn) db.releaseConnection(conn);
-    }
-  });
-
-app.delete("/users/:id", auth, async (req,res)=>{
-    const conn= await db.getConnection();
-    const userId=parseInt(req.params.id)
-    if (isNaN(userId)) {
-        throw new Error("Invalid user id");
-    }
-    const [values]=await conn.query(`DELETE FROM users WHERE users.id=?;`,[userId]);
-    if (values.affectedRows!=1) {
-        throw new Error("Failed to delete");
-    }
-    db.releaseConnection(conn)
-    res.status(202).json({message : "Succesfully deleted"})
-})
-
-app.put("/users/:id", auth,  async (req,res)=>{
-    const conn= await db.getConnection();
-    const userId=parseInt(req.params.id)
-    if (isNaN(userId)) {
-        throw new Error("Invalid user id");
-    }
-    if (Object.keys(body)!=5) {
-        throw new Error("Invalid body");
-    }
-    if (typeof(body.username)!="string") {
-        throw new Error("Invalid name");
-    }
-    if (typeof(body.password)!="string") {
-        throw new Error("Invalid password");
-    }
-    if (typeof(body.email)!="string") {
-        throw new Error("Invalid email");
-    }
-    if (typeof(body.phone_number)!="string") {
-        throw new Error("Invalid phone_number");
-    }
-    if (typeof(body.address)!="string") {
-        throw new Error("Invalid address");
     }
 
-    const [values]=await conn.query(`UPDATE users SET username=?, password=?, email=?, phone_number=?, address=? WHERE users.id=?;`,[body.username || null,body.password || null,body.email || null,body.phone_number || null,body.address || null,userId]);
-    if (values.affectedRows!=1) {
-        throw new Error("Failed to update");
-    }
-    db.releaseConnection(conn)
-    res.status(202).json({message : "Succesfully updated"})
-})
+    await conn.query("DELETE FROM cart WHERE user_id = ?", [req.userId]);
+    conn.release();
 
+    res.json({ message: "Rendelés sikeresen leadva" });
+  } catch (err) {
+    errorHandler(err, req, res);
+  }
+});-
 
-app.get("/products/get", async (req,res)=>{
-    const conn= await db.getConnection();
-    const [values]=await conn.query(`SELECT * FROM products;`);
-    if (!values|| values.length<1) {
-        throw new Error("Failed to get products");
-    }
-    db.releaseConnection(conn)
-    res.json(values)
-})
+app.get("/users", verifyAdmin, async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    const [rows] = await conn.query(
+      "SELECT id AS _id, username AS name, email FROM users"
+    );
+    conn.release();
+    res.json(rows);
+  } catch (err) {
+    errorHandler(err, req, res);
+  }
+});
+app.use(errorHandler);
 
-app.post("/products/add", auth, async (req,res)=>{
-    const conn= await db.getConnection();
-    const body=req.body;
-    if (Object.keys(body)!=5) {
-        throw new Error("Invalid body");
-    }
-    if (!body.name||typeof(body.name)!="string") {
-        throw new Error("Invalid name");
-    }
-    if (!body.description||typeof(body.description)!="string") {
-        throw new Error("Invalid description");
-    }
-    if (!body.price||typeof(body.price)!="number") {
-        throw new Error("Invalid price");
-    }
-    if (!body.quantity||typeof(body.quantity)!="number") {
-        throw new Error("Invalid quantity");
-    }
-    if (!body.image||typeof(body.image)!="string") {
-        throw new Error("Invalid image");
-    }
-
-    const [values]=await conn.query(`SELECT * FROM products WHERE products.name=?;`, [body.name]);
-    if (values) {
-        throw new Error("Product already exists");
-    }
-
-    const [insertProduct]=await conn.query(`INSERT INTO products(name,description,price,quantity) VALUES (?,?,?,?)`,[body.name,body.description,body.price,body.quantity])
-    if (insertProduct.affectedRows!=1) {
-        throw new Error("Failed to insert product");
-    }
-
-    db.releaseConnection(conn)
-    res.status(201).json({message: "Product uploaded"})
-})
-
-app.delete("/products/:id", auth, async (req,res)=>{
-    const conn= await db.getConnection();
-    const productId=parseInt(req.params.id)
-    if (isNaN(productId)) {
-        throw new Error("Invalid product id");
-    }
-
-    const [values]=await conn.query(`DELETE FROM products WHERE products.id=?;`,[productId]);
-    if (values.affectedRows!=1) {
-        throw new Error("Failed to delete");
-    }
-    db.releaseConnection(conn)
-    res.status(202).json({message : "Succesfully deleted"})
-})
-
-app.put("/products/:id", auth,  async (req,res)=>{
-    const conn= await db.getConnection();
-    const productId=parseInt(req.params.id)
-    if (isNaN(productId)) {
-        throw new Error("Invalid product id");
-    }
-    if (Object.keys(body)!=5) {
-        throw new Error("Invalid body");
-    }
-    if (typeof(body.name)!="string") {
-        throw new Error("Invalid name");
-    }
-    if (typeof(body.description)!="string") {
-        throw new Error("Invalid description");
-    }
-    if (typeof(body.price)!="number") {
-        throw new Error("Invalid price");
-    }
-    if (typeof(body.quantity)!="number") {
-        throw new Error("Invalid quantity");
-    }
-    if (typeof(body.image)!="string") {
-        throw new Error("Invalid image");
-    }
-
-    const [values]=await conn.query(`UPDATE products SET name=?, description=?, price=?, quantity=? WHERE products.id=?;`,[body.name || null,body.description || null,body.price || null,body.quantity || null,productId]);
-    if (values.affectedRows!=1) {
-        throw new Error("Failed to update");
-    }
-    db.releaseConnection(conn)
-    res.status(202).json({message : "Succesfully updated"})
-})
-
-app.get("/order", auth, async (req,res)=>{
-    const conn= await db.getConnection();
-    const [values]=await conn.query(`SELECT * FROM orders INNER JOIN users ON users.id=orders.user_id INNER JOIN products ON products.id=orders.product_id;`);
-    if (!values|| values.length<1) {
-        throw new Error("Failed to get order");
-    }
-    db.releaseConnection(conn)
-    res.json({values})
-})
-
-app.delete("/order/:id", auth, async (req,res)=>{
-    const conn= await db.getConnection();
-    const orderId=parseInt(req.params.id)
-    if (isNaN(orderId)) {
-        throw new Error("Invalid order id");
-    }
-
-    const [values]=await conn.query(`DELETE FROM orders WHERE orders.id=?;`,[orderId]);
-    if (values.affectedRows!=1) {
-        throw new Error("Failed to delete");
-    }
-    db.releaseConnection(conn)
-    res.status(202).json({message : "Succesfully deleted"})
-})
-
-app.use(error)
-
-app.listen(3000, async ()=>{
-    console.log("A szerver elindult!")
-})
+app.listen(5000, () => {
+  console.log("A szerver fut a http://localhost:5000 címen");
+});

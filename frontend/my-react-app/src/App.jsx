@@ -1,63 +1,116 @@
-import {useState} from 'react';
-import './App.css'
-import { BrowserRouter, Route, Routes, NavLink } from 'react-router-dom'
-import Login from "./Login";
-import Regist from "./Regist";
-import Home from "./Home";
-import Upload from "./Upload";
-import Profil from "./Profil";
-import Kosar from "./Kosar";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import Registration from './Regist';
+import Login from './Login';
+import Products from './Products';
+import Cart from './Cart';
+import Profile from './Profile';
+import Order from './Order';
+import AdminProductUpload from './AdminProductUpload';
+import AdminUsers from './AdminUsers';
+import './App.css';
 
-
-function App() {
-  const [user, setUser] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+function Logout() {
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUser(null);
-  }
+    localStorage.removeItem('token');
+    alert('Sikeres kijelentkezés!');
+    navigate('/login');
+    window.location.reload();
+  };
+
+  return <button onClick={handleLogout} className="logout-btn">Kijelentkezés</button>;
+}
+
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch('http://localhost:5000/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.isAdmin !== undefined) {
+            setIsLoggedIn(true);
+            setIsAdmin(data.isAdmin);
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem('token');
+        });
+    }
+  }, []);
 
   return (
-    <>
+    <Router>
+      <header className="header">
+        <div className="container">
+          <Link to="/" className="logo">🎣 Horgász Bolt</Link>
 
-      <BrowserRouter>
-        <nav className="navbar">
-          <div className="nav-logo">🎣 Horgászbolt</div>
-
-          <div className="nav-links">
-            {isLoggedIn ? (
-              // Bejelentkezett
+          <nav>
+            {isLoggedIn && (
               <>
-                <NavLink to="/" className="nav-item">Kezdőlap</NavLink>
-                <NavLink to="/kosar" className="nav-item">Kosár</NavLink>
-                <NavLink to="/profil" className="nav-item">Profil</NavLink>
-                <NavLink to="/upload" className="nav-item">Upload</NavLink>
-                <button className="logout-btn" onClick={handleLogout}>Kijelentkezés</button>
-              </>
-            ) : (
-              // NEM Bejeletkezett
-              <>
-                <NavLink to="/" className="nav-item">Kezdőlap</NavLink>
-                <NavLink to="/login" className="nav-item">Bejelentkezés</NavLink>
-                <NavLink to="/regist" className="nav-item">Regisztráció</NavLink>
+                <Link to="/">Kezdőlap</Link>
+                <Link to="/cart">Kosár</Link>
+                <Link to="/profile">Profil</Link>
               </>
             )}
-          </div>
-        </nav>
 
+            {isAdmin && (
+              <>
+                <Link to="/admin/products/new">Új termék feltöltése</Link>
+                <Link to="/admin/users">Felhasználók kezelése</Link>
+              </>
+            )}
+
+            {!isLoggedIn && (
+              <>
+                <Link to="/login">Bejelentkezés</Link>
+                <Link to="/register">Regisztráció</Link>
+              </>
+            )}
+
+            {isLoggedIn && <Logout />}
+          </nav>
+        </div>
+      </header>
+
+      <main className="container">
         <Routes>
-          <Route path="/" element={<Home isLoggedIn={isLoggedIn}/>} />
-          <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn} setUser={setUser}/>} />
-          <Route path="/regist" element={<Regist />} />
-          <Route path="/upload" element={<Upload />} />
-          <Route path="/profil" element={<Profil />} />
-          <Route path="/kosar" element={<Kosar />} />
-        </Routes>
+          <Route path="/" element={<Products />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:id" element={<Products />} />
 
-      </BrowserRouter>
-    </>
+          <Route 
+            path="/login" 
+            element={<Login setIsLoggedIn={setIsLoggedIn} setUser={() => {}} />} 
+          />
+          <Route path="/register" element={<Registration />} />
+
+          {isLoggedIn ? (
+            <>
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/order" element={<Order />} />
+
+              {isAdmin && (
+                <>
+                  <Route path="/admin/products/new" element={<AdminProductUpload />} />
+                  <Route path="/admin/users" element={<AdminUsers />} />
+                </>
+              )}
+            </>
+          ) : (
+            <Route path="*" element={<Login setIsLoggedIn={setIsLoggedIn} setUser={() => {}} />} />
+          )}
+        </Routes>
+      </main>
+    </Router>
   );
 }
 
