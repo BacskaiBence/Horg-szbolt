@@ -63,7 +63,7 @@ function App() {
 
             {isAdmin && (
               <>
-                <Link to="/admin/products/new">Új termék feltöltése</Link>
+                <Link to="/admin/products/new">Termék feltöltése</Link>
                 <Link to="/admin/users">Felhasználók kezelése</Link>
               </>
             )}

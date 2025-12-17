@@ -1,287 +1,224 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;500;800&display=swap');
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background-color: #f0f7fa;
-  color: #333;
-  min-height: 100vh;
-}
-
-.container {
-  max-width: 1200px;
+#root {
+  max-width: 100%;
   margin: 0 auto;
-  padding: 20px;
+  min-height: 100vh;
   display: flex;
-  justify-content: center;   /* vízszintes középre */
-  align-items: flex-start;   /* felülről induljon */
-  min-height: calc(100vh - 70px); /* navbar magassága levonva */
+  flex-direction: column;
 }
 
-/* ====================== NAVBAR ====================== */
+body {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  background-color: #0d1a18;
+  background-image: linear-gradient(180deg, rgba(20, 45, 40, 0.8) 0%, rgba(13, 26, 24, 1) 100%);
+  color: #e0e7e6;
+  line-height: 1.5;
+}
+
+/* ====================== PROFI NAVBAR JAVÍTÁS ====================== */
 .header {
-  background: linear-gradient(135deg, #004d40, #00796b);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: rgba(13, 26, 24, 0.98);
+  backdrop-filter: blur(15px);
   position: sticky;
   top: 0;
   z-index: 1000;
+  border-bottom: 1px solid rgba(63, 177, 165, 0.2);
+  width: 100%;
 }
 
 .header .container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 15px 40px; /* Fix magasság helyett padding a rugalmasságért */
   display: flex;
-  justify-content: center;     /* minden középre */
-  align-items: center;
-  min-height: 70px;
-  padding: 15px 20px;
-  flex-wrap: wrap;             /* mobilon tördelés */
-  gap: 40px;                   /* logó és linkek között távolság */
+  justify-content: space-between; /* Szélekre tolás */
+  align-items: center; /* Függőleges középre igazítás */
 }
 
-/* Logó és navigáció egy közös flex konténerben középen */
 .logo {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
-  color: white;
+  color: #3fb1a5;
   text-decoration: none;
-  letter-spacing: 1px;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
   display: flex;
   align-items: center;
-}
-
-.logo::before {
-  content: "🎣";
-  margin-right: 10px;
-  font-size: 32px;
+  gap: 10px;
+  flex: 1; /* Bal oldali rugalmas helykitöltés */
 }
 
 nav {
   display: flex;
-  gap: 30px;
-  flex-wrap: wrap;
-  justify-content: center;
+  gap: 15px; /* Optimális távolság */
   align-items: center;
+  justify-content: center;
+  flex: 2; /* Középső rész hangsúlyozása */
 }
 
 nav a {
-  color: #e0f7fa;
+  color: #94a3a0;
   text-decoration: none;
-  font-weight: 600;
-  font-size: 16px;
-  padding: 10px 15px;
-  position: relative;
-  transition: color 0.3s ease;
-  border-radius: 6px;
+  font-weight: 500;
+  font-size: 15px;
+  padding: 10px 22px; /* Több hely a szöveg körül */
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px; /* Kényelmes kattintási terület */
 }
 
 nav a:hover {
   color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.1);
+  background: rgba(63, 177, 165, 0.1);
 }
 
-nav a::after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 3px;
-  bottom: 5px;
-  left: 50%;
-  background-color: #ffab40;
-  transition: all 0.3s ease;
-  transform: translateX(-50%);
-}
-
-nav a:hover::after {
-  width: 80%;
-}
-
-/* Kijelentkezés gomb – ugyanúgy középen a linkekkel */
-.logout-btn {
-  background: #d32f2f;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
+nav a.active {
+  color: #ffffff;
+  background: #3fb1a5;
   font-weight: 600;
+}
+
+.logout-wrap {
+  display: flex;
+  justify-content: flex-end;
+  flex: 1; /* Jobb oldali rugalmas helykitöltés */
+}
+
+.logout-btn {
+  background: transparent;
+  color: #e64a19;
+  border: 2px solid #e64a19;
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-weight: 800;
   cursor: pointer;
-  transition: background 0.3s ease;
+  text-transform: uppercase;
+  font-size: 12px;
+  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap; /* Ne törjön meg a szöveg */
 }
 
 .logout-btn:hover {
-  background: #b71c1c;
+  background: #e64a19;
+  color: white;
+  box-shadow: 0 4px 15px rgba(230, 74, 25, 0.3);
 }
 
-/* ====================== TARTALOM ====================== */
+/* ====================== TARTALOM ÉS EGYEBEK ====================== */
 main {
-    width: 100%;
-  max-width: 800px;
-  padding: 20px 0;
-
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
 }
 
 form {
-  background: white;
+  background: #142d28;
   padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
+  border-radius: 30px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+  max-width: 450px;
   margin: 40px auto;
+  border: 1px solid rgba(63, 177, 165, 0.15);
 }
 
 form h2 {
   text-align: center;
-  margin-bottom: 30px;
-  color: #004d40;
+  margin-bottom: 25px;
   font-size: 28px;
+  color: #fff;
 }
 
 input {
   width: 100%;
-  padding: 14px;
-  margin: 12px 0;
-  border: 2px solid #b2dfdb;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
-}
-
-input:focus {
-  outline: none;
-  border-color: #00796b;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: #0d1a18;
+  border: 1px solid rgba(63, 177, 165, 0.3);
+  border-radius: 12px;
+  color: #fff;
+  font-family: inherit;
 }
 
 button {
   width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #00796b, #004d40);
-  color: white;
+  padding: 16px;
+  background: #3fb1a5;
+  color: #0d1a18;
   border: none;
-  border-radius: 8px;
-  font-size: 18px;
-  font-weight: 600;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 800;
   cursor: pointer;
-  margin-top: 20px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: 0.3s;
 }
 
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-}
-
-button:disabled {
-  background: #aaa;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.error {
-  color: #d32f2f;
-  background: #ffebee;
-  padding: 12px;
-  border-radius: 8px;
-  margin: 15px 0;
-  text-align: center;
-  font-weight: 500;
-}
-
-/* Termékek grid */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 30px;
-  margin-top: 20px;
 }
 
 .product-card {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  text-align: center;
-}
-
-.product-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  background: #142d28;
+  border-radius: 20px;
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: 0.3s;
 }
 
 .product-card img {
   width: 100%;
   height: 220px;
   object-fit: cover;
-}
-
-.product-card h3 {
-  padding: 20px 15px 10px;
-  font-size: 20px;
-  color: #004d40;
+  border-radius: 12px;
 }
 
 .price {
-  font-size: 24px;
-  font-weight: bold;
-  color: #00796b;
-  margin: 10px 0;
-}
-
-/* Kosár elemek */
-.cart-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  background: white;
-  margin-bottom: 15px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.cart-item button {
-  width: auto;
-  padding: 10px 20px;
-  background-color: #d32f2f;
+  font-size: 22px;
+  font-weight: 800;
+  color: #3fb1a5;
+  margin-top: 10px;
 }
 
 .total {
-  font-size: 26px;
-  font-weight: bold;
-  text-align: right;
-  margin: 30px 0;
-  color: #004d40;
+  font-size: 28px;
+  font-weight: 800;
+  color: #0d1a18;
+  background: #3fb1a5;
+  padding: 15px 35px;
+  border-radius: 15px;
+  float: right;
 }
 
-
-
-/* Formok és kártyák tökéletes középre igazítása */
-form,
-.product-grid,
-.cart-item,
-.login-container {
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto; /* biztos középre */
-}
-
-/* Termék grid is középre, ha kevés termék van */
-.product-grid {
-  justify-content: center; /* grid elemek középre, ha nem töltik ki a sort */
-}
-
-/* Kosár összesen szöveg jobbra igazítása, de a konténer marad középen */
-.total {
-  text-align: right;
-  max-width: 600px;
-  margin: 30px auto 0 auto;
-  padding-right: 20px;
-}
-#root {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-  min-height: 100vh;
+/* MOBIL */
+@media (max-width: 768px) {
+  .header .container {
+    flex-direction: column;
+    padding: 15px;
+    gap: 15px;
+  }
+  
+  nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+  }
+  
+  .logout-wrap {
+    width: 100%;
+    justify-content: center;
+  }
 }
