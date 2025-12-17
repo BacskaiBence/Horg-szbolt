@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;500;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
 
 * {
   margin: 0;
@@ -7,7 +7,7 @@
 }
 
 #root {
-  max-width: 100%;
+  width: 100%;
   margin: 0 auto;
   min-height: 100vh;
   display: flex;
@@ -15,210 +15,217 @@
 }
 
 body {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  background-color: #0d1a18;
-  background-image: linear-gradient(180deg, rgba(20, 45, 40, 0.8) 0%, rgba(13, 26, 24, 1) 100%);
-  color: #e0e7e6;
-  line-height: 1.5;
+  font-family: 'Roboto', sans-serif;
+  background-color: #f4f7f6;
+  background-image: url("https://www.transparenttextures.com/patterns/cubes.png");
+  color: #2c3e50;
+  line-height: 1.6;
 }
 
-/* ====================== PROFI NAVBAR JAVÍTÁS ====================== */
+/* ====================== TELJES SZÉLESSÉGŰ NAVBAR ====================== */
 .header {
-  background: rgba(13, 26, 24, 0.98);
-  backdrop-filter: blur(15px);
+  background-color: #1b4332;
+  border-bottom: 5px solid #2d6a4f;
   position: sticky;
   top: 0;
   z-index: 1000;
-  border-bottom: 1px solid rgba(63, 177, 165, 0.2);
-  width: 100%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  width: 100%; /* Ez húzza ki a teljes képernyőre */
 }
 
 .header .container {
-  max-width: 1400px;
+  max-width: 1400px; /* A belső tartalom maximum szélessége */
   margin: 0 auto;
-  padding: 15px 40px; /* Fix magasság helyett padding a rugalmasságért */
+  padding: 0 40px;
   display: flex;
-  justify-content: space-between; /* Szélekre tolás */
-  align-items: center; /* Függőleges középre igazítás */
+  justify-content: space-between;
+  align-items: center;
+  min-height: 90px;
 }
 
 .logo {
-  font-size: 24px;
-  font-weight: 800;
-  color: #3fb1a5;
+  font-size: 28px;
+  font-weight: 900;
+  color: #ffffff;
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex: 1; /* Bal oldali rugalmas helykitöltés */
+  gap: 15px;
+  letter-spacing: 1px;
+}
+
+.logo:hover {
+  color: #d8f3dc;
 }
 
 nav {
   display: flex;
-  gap: 15px; /* Optimális távolság */
+  gap: 15px;
   align-items: center;
   justify-content: center;
-  flex: 2; /* Középső rész hangsúlyozása */
 }
 
 nav a {
-  color: #94a3a0;
+  color: #d8f3dc;
   text-decoration: none;
-  font-weight: 500;
-  font-size: 15px;
-  padding: 10px 22px; /* Több hely a szöveg körül */
-  border-radius: 12px;
-  transition: all 0.2s ease;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 12px 25px;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px; /* Kényelmes kattintási terület */
+  height: 45px;
 }
 
 nav a:hover {
+  background-color: #2d6a4f;
   color: #ffffff;
-  background: rgba(63, 177, 165, 0.1);
 }
 
 nav a.active {
+  background-color: #488FB1;
   color: #ffffff;
-  background: #3fb1a5;
-  font-weight: 600;
 }
 
 .logout-wrap {
   display: flex;
-  justify-content: flex-end;
-  flex: 1; /* Jobb oldali rugalmas helykitöltés */
+  align-items: center;
 }
 
 .logout-btn {
-  background: transparent;
-  color: #e64a19;
-  border: 2px solid #e64a19;
-  padding: 8px 20px;
-  border-radius: 50px;
-  font-weight: 800;
+  background-color: #bc4749;
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 5px;
+  font-weight: 700;
   cursor: pointer;
   text-transform: uppercase;
-  font-size: 12px;
+  font-size: 13px;
   transition: 0.3s;
+  height: 45px;
   display: flex;
   align-items: center;
   justify-content: center;
-  white-space: nowrap; /* Ne törjön meg a szöveg */
 }
 
 .logout-btn:hover {
-  background: #e64a19;
-  color: white;
-  box-shadow: 0 4px 15px rgba(230, 74, 25, 0.3);
+  background-color: #a21a1c;
 }
 
-/* ====================== TARTALOM ÉS EGYEBEK ====================== */
+/* ====================== TARTALOM ====================== */
 main {
   flex: 1;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 50px 20px;
 }
 
 form {
-  background: #142d28;
-  padding: 40px;
-  border-radius: 30px;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.4);
-  max-width: 450px;
-  margin: 40px auto;
-  border: 1px solid rgba(63, 177, 165, 0.15);
+  background: #ffffff;
+  padding: 45px;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  max-width: 500px;
+  margin: 0 auto;
+  border-top: 8px solid #1b4332;
 }
 
 form h2 {
   text-align: center;
-  margin-bottom: 25px;
-  font-size: 28px;
-  color: #fff;
+  margin-bottom: 30px;
+  color: #1b4332;
+  font-weight: 900;
+  font-size: 30px;
 }
 
 input {
   width: 100%;
   padding: 15px;
-  margin-bottom: 15px;
-  background: #0d1a18;
-  border: 1px solid rgba(63, 177, 165, 0.3);
-  border-radius: 12px;
-  color: #fff;
-  font-family: inherit;
+  margin-bottom: 20px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #1b4332;
+}
+
+input:focus {
+  outline: none;
+  border-color: #488FB1;
 }
 
 button {
   width: 100%;
-  padding: 16px;
-  background: #3fb1a5;
-  color: #0d1a18;
+  padding: 18px;
+  background-color: #1b4332;
+  color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 800;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
   transition: 0.3s;
+  text-transform: uppercase;
 }
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 30px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 40px;
 }
 
 .product-card {
-  background: #142d28;
-  border-radius: 20px;
-  padding: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  border: 1px solid #d8f3dc;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
   transition: 0.3s;
 }
 
 .product-card img {
   width: 100%;
-  height: 220px;
+  height: 250px;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 10px;
+  margin-bottom: 20px;
 }
 
 .price {
-  font-size: 22px;
-  font-weight: 800;
-  color: #3fb1a5;
-  margin-top: 10px;
+  font-size: 24px;
+  font-weight: 900;
+  color: #488FB1;
 }
 
 .total {
-  font-size: 28px;
-  font-weight: 800;
-  color: #0d1a18;
-  background: #3fb1a5;
-  padding: 15px 35px;
-  border-radius: 15px;
+  font-size: 35px;
+  font-weight: 900;
+  color: #ffffff;
+  background-color: #1b4332;
+  padding: 20px 50px;
+  border-radius: 10px;
   float: right;
+  margin-top: 30px;
 }
 
-/* MOBIL */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+  .header .container {
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 850px) {
   .header .container {
     flex-direction: column;
-    padding: 15px;
-    gap: 15px;
+    padding: 20px;
+    gap: 20px;
   }
-  
   nav {
     flex-wrap: wrap;
-    justify-content: center;
-    gap: 5px;
-  }
-  
-  .logout-wrap {
-    width: 100%;
-    justify-content: center;
   }
 }
