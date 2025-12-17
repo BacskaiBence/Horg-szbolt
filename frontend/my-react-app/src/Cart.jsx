@@ -63,7 +63,7 @@ const Cart = () => {
             <div className="cart-item" key={item._id}>
               <div>
                 <strong>{item.name}</strong><br />
-                {item.quantity} db × {item.price} Ft = {item.quantity * item.price} Ft
+               <button onClick={(item) => {item.quantity-1}}>-</button>  {item.quantity} db <button onClick={(item) => {item.quantity+1} }>+</button> × {item.price} Ft = {item.quantity * item.price} Ft
               </div>
               <button onClick={() => removeFromCart(item._id)}>Eltávolít</button>
             </div>

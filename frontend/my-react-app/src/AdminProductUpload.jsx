@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const AdminProductUpload = () => {
-  const [formData, setFormData] = useState({ name: '', price: '', description: '', image: '' });
+  const [formData, setFormData] = useState({ name: '', price: '', description: '', quantity: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
@@ -56,7 +56,7 @@ const AdminProductUpload = () => {
       if (!response.ok) throw new Error('Hiba a termék feltöltésekor');
 
       alert('Termék sikeresen feltöltve!');
-      setFormData({ name: '', price: '', description: '', image: '' });
+      setFormData({ name: '', price: '', description: '', quantity: '' });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -72,7 +72,7 @@ const AdminProductUpload = () => {
       <input name="name" placeholder="Termék neve" value={formData.name} onChange={handleChange} required />
       <input name="price" type="number" placeholder="Ár (Ft)" value={formData.price} onChange={handleChange} required />
       <input name="description" placeholder="Leírás" value={formData.description} onChange={handleChange} required />
-      <input name="image" placeholder="Kép URL (vagy base64)" value={formData.image} onChange={handleChange} />
+      <input name="quantity" placeholder="Darabszám" value={formData.quantity} onChange={handleChange} />
       
       {error && <div className="error">{error}</div>}
       

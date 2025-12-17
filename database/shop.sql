@@ -9,10 +9,14 @@ CREATE TABLE users (
     username VARCHAR(100) NOT NULL,
     pasword VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    phone_number VARCHAR(50) NOT NULL,
-    address VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(50),
+    address VARCHAR(255),
     entitlement TINYINT DEFAULT 0
 );
+
+insert into users(username,pasword,email,phone_number,address,entitlement)
+values
+("admin","$argon2i$v=19$m=16,t=2,p=1$S0FabjVNeEI4cWhvMWpUNQ$v+oP0zGQrr0eTL8s6iAoIA","admin@admin.com",NULL,NULL,1);
 
 CREATE TABLE products (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -43,6 +47,8 @@ CREATE TABLE orders (
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
+
+
 
 CREATE INDEX idx_orders_user ON orders(user_id);
 CREATE INDEX idx_orders_date ON orders(order_date);

@@ -50,7 +50,7 @@ function App() {
     <Router>
       <header className="header">
         <div className="container">
-          <Link to="/" className="logo">🎣 Horgász Bolt</Link>
+          <Link to="/" >🎣 Horgász Bolt 🎣</Link>
 
           <nav>
             {isLoggedIn && (
